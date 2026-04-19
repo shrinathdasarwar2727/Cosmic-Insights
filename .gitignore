@@ -137,3 +137,9 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Additional logs
+pnpm-debug.log*
+
+# OS junk
+Thumbs.db
