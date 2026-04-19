@@ -1,12 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { LAGNA_SIGNS } from '../utils/lagna';
+import { Button } from './ui/button';
 
 interface UserData {
   name: string;
   dateOfBirth: string;
   timeOfBirth: string;
   placeOfBirth: string;
+  lagnaSign: string;
+  lagnaSystem: string;
 }
 
 interface UserFormProps {
@@ -18,15 +23,17 @@ export function UserForm({ onDataChange }: UserFormProps) {
     name: '',
     dateOfBirth: '',
     timeOfBirth: '',
-    placeOfBirth: ''
+    placeOfBirth: '',
+    lagnaSign: 'AUTO',
+    lagnaSystem: 'vedic-lahiri'
   });
-
-  useEffect(() => {
-    onDataChange(formData);
-  }, [formData, onDataChange]);
 
   const handleChange = (field: keyof UserData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handlePredict = () => {
+    onDataChange(formData);
   };
 
   return (
@@ -73,6 +80,50 @@ export function UserForm({ onDataChange }: UserFormProps) {
             className="bg-white/0 border-white/20 text-white placeholder:text-white/35 focus:border-purple-400/50 focus:ring-purple-500/20"
           />
         </div>
+
+        <div className="space-y-2">
+          <Label className="text-white/70">Lagna (Ascendant)</Label>
+          <Select
+            value={formData.lagnaSign}
+            onValueChange={(value) => handleChange('lagnaSign', value)}
+          >
+            <SelectTrigger className="bg-white/0 border-white/20 text-white focus:border-purple-400/50 focus:ring-purple-500/20">
+              <SelectValue placeholder="Select Lagna" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="AUTO">Auto (Estimate from time and place)</SelectItem>
+              {LAGNA_SIGNS.map((sign) => (
+                <SelectItem key={sign} value={sign}>
+                  {sign}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-white/70">Lagna System</Label>
+          <Select
+            value={formData.lagnaSystem}
+            onValueChange={(value) => handleChange('lagnaSystem', value)}
+          >
+            <SelectTrigger className="bg-white/0 border-white/20 text-white focus:border-purple-400/50 focus:ring-purple-500/20">
+              <SelectValue placeholder="Select Lagna System" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="vedic-lahiri">Vedic (Lahiri)</SelectItem>
+              <SelectItem value="tropical">Tropical</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <Button
+          type="button"
+          onClick={handlePredict}
+          className="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-400 hover:to-blue-400"
+        >
+          Predict Horoscope
+        </Button>
       </div>
     </div>
   );

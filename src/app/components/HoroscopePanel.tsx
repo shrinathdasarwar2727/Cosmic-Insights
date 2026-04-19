@@ -1,112 +1,22 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { Sparkles } from 'lucide-react';
 import { ZodiacConstellation } from './ZodiacConstellation';
 import { ZodiacAnimalBackground } from './ZodiacAnimalBackground';
-
-interface HoroscopeDetails {
-  overview: string;
-  strengths: string;
-  cautions: string;
-  doList: string[];
-  avoidList: string[];
-}
-
-const horoscopeDetails: Record<string, HoroscopeDetails> = {
-  Aries: {
-    overview: 'High momentum supports leadership, initiative, and fast decisions. You perform best when you channel energy into one clear target.',
-    strengths: 'Confidence, courage, and action-oriented thinking help you start things others postpone.',
-    cautions: 'Impatience and reacting too quickly can create avoidable conflict.',
-    doList: ['Start one important pending task', 'Speak directly but respectfully', 'Use physical activity to release extra stress'],
-    avoidList: ['Rushing major decisions without review', 'Turning small disagreement into argument', 'Overcommitting in excitement']
-  },
-  Taurus: {
-    overview: 'Steady, practical energy favors consistency, financial planning, and relationship stability.',
-    strengths: 'Reliability and patience make you excellent at building long-term results.',
-    cautions: 'Resistance to change can delay useful opportunities.',
-    doList: ['Finish delayed practical work', 'Review spending and savings calmly', 'Take a slow, grounding break in nature'],
-    avoidList: ['Ignoring new methods only due habit', 'Holding emotional stress silently', 'Stubbornly saying no without hearing details']
-  },
-  Gemini: {
-    overview: 'Communication and learning are highlighted. Networking, writing, and idea-sharing are especially productive.',
-    strengths: 'Quick thinking, adaptability, and curiosity help you solve problems creatively.',
-    cautions: 'Scattered focus can reduce depth and follow-through.',
-    doList: ['Prioritize top three tasks', 'Use your voice for collaboration', 'Capture new ideas in notes immediately'],
-    avoidList: ['Multitasking every task at once', 'Spreading unverified information', 'Starting more than you can finish']
-  },
-  Cancer: {
-    overview: 'Emotional awareness and home-related priorities come forward. Supportive bonds help you feel secure and productive.',
-    strengths: 'Empathy, care, and intuition help you understand people deeply.',
-    cautions: 'Overthinking emotions may create unnecessary mood swings.',
-    doList: ['Set one healthy emotional boundary', 'Reconnect with trusted family or friend', 'Create a calm evening routine'],
-    avoidList: ['Taking criticism too personally', 'Withdrawing without communication', 'Making decisions only from temporary mood']
-  },
-  Leo: {
-    overview: 'Visibility and creative self-expression are strong. Recognition grows when confidence is paired with humility.',
-    strengths: 'Charisma, leadership, and generosity inspire people around you.',
-    cautions: 'Need for validation can lead to burnout or ego clashes.',
-    doList: ['Lead one initiative with clarity', 'Encourage someone on your team', 'Use creativity in work or personal project'],
-    avoidList: ['Dominating every conversation', 'Ignoring practical feedback', 'Equating attention with self-worth']
-  },
-  Virgo: {
-    overview: 'Detail work, organization, and skill improvement are favored. This is a strong period for systems and routines.',
-    strengths: 'Precision, analysis, and service mindset improve quality and reliability.',
-    cautions: 'Perfectionism may delay completion and increase stress.',
-    doList: ['Complete one task to 90% instead of 100%', 'Organize workspace and schedule', 'Track one habit consistently'],
-    avoidList: ['Over-criticizing yourself or others', 'Getting stuck in minor details', 'Postponing launch for perfection']
-  },
-  Libra: {
-    overview: 'Partnership, diplomacy, and social alignment are highlighted. Balance decisions with both logic and values.',
-    strengths: 'Fairness, harmony, and negotiation skills improve collaboration.',
-    cautions: 'People-pleasing can hide your real priorities.',
-    doList: ['Clarify one personal boundary kindly', 'Resolve a pending misunderstanding', 'Choose quality over quantity in commitments'],
-    avoidList: ['Delaying decisions too long', 'Agreeing just to avoid conflict', 'Ignoring your own needs']
-  },
-  Scorpio: {
-    overview: 'Deep focus and transformation are active. You can make powerful progress by releasing old patterns.',
-    strengths: 'Intensity, emotional depth, and strategic thinking support meaningful change.',
-    cautions: 'Control issues or secrecy may strain trust.',
-    doList: ['Do one honest self-review', 'Channel intensity into productive work', 'Let go of one draining attachment'],
-    avoidList: ['Testing loyalty through emotional games', 'Holding grudges silently', 'Forcing outcomes through pressure']
-  },
-  Sagittarius: {
-    overview: 'Expansion, learning, and broader perspective are strong. Good time for study, travel planning, and fresh goals.',
-    strengths: 'Optimism and vision help you motivate yourself and others.',
-    cautions: 'Over-promising can create avoidable disappointment.',
-    doList: ['Study a new topic deeply', 'Set practical milestones for big goals', 'Share honest encouragement with others'],
-    avoidList: ['Escaping routine responsibilities', 'Giving advice without listening first', 'Taking high-risk decisions impulsively']
-  },
-  Capricorn: {
-    overview: 'Discipline and structure support long-term progress. Results come through persistence and focused execution.',
-    strengths: 'Responsibility, resilience, and planning improve career and finances.',
-    cautions: 'Work-first mindset may reduce emotional wellbeing.',
-    doList: ['Prioritize one high-impact objective', 'Review long-term plan with realistic steps', 'Create rest time as non-negotiable'],
-    avoidList: ['Ignoring personal relationships', 'Carrying all burden alone', 'Measuring success only by output']
-  },
-  Aquarius: {
-    overview: 'Innovation and independent thought are favored. Your unique perspective can unlock new approaches.',
-    strengths: 'Originality, vision, and social intelligence help in group ideas and systems thinking.',
-    cautions: 'Emotional detachment may make communication feel distant.',
-    doList: ['Test one unconventional idea', 'Collaborate with open-minded people', 'Explain your logic in simple language'],
-    avoidList: ['Rejecting tradition without evaluation', 'Disconnecting emotionally from close people', 'Changing direction too frequently']
-  },
-  Pisces: {
-    overview: 'Intuition, imagination, and healing energy are high. Creative and reflective work can be especially fulfilling.',
-    strengths: 'Compassion, sensitivity, and artistic instinct help you connect deeply.',
-    cautions: 'Boundary issues can lead to overwhelm and confusion.',
-    doList: ['Use journaling or meditation for clarity', 'Protect your schedule with clear boundaries', 'Create through music, art, or writing'],
-    avoidList: ['Absorbing everyone else emotional load', 'Escaping reality under stress', 'Saying yes when you mean no']
-  }
-};
+import { generatePrediction } from '../utils/predictionEngine';
+import { calculateLifePathNumber, calculateMulank } from '../utils/numerologyRules';
 
 interface HoroscopePanelProps {
+  name: string;
   zodiacSign: string;
+  lagnaSign: string;
+  lagnaSystem: string;
   dateOfBirth: string;
   timeOfBirth: string;
   placeOfBirth: string;
 }
 
-export function HoroscopePanel({ zodiacSign, dateOfBirth, timeOfBirth, placeOfBirth }: HoroscopePanelProps) {
+export function HoroscopePanel({ name, zodiacSign, lagnaSign, lagnaSystem, dateOfBirth, timeOfBirth, placeOfBirth }: HoroscopePanelProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
   const circleRef = useRef<HTMLDivElement>(null);
@@ -144,7 +54,29 @@ export function HoroscopePanel({ zodiacSign, dateOfBirth, timeOfBirth, placeOfBi
     }
   }, [zodiacSign]);
 
-  const detail = horoscopeDetails[zodiacSign];
+  const prediction = useMemo(() => {
+    const lifePathNumber = calculateLifePathNumber(dateOfBirth);
+    const mulank = calculateMulank(dateOfBirth);
+
+    return generatePrediction({
+      name,
+      zodiacSign,
+      lagnaSign,
+      lagnaSystem,
+      lifePathNumber,
+      mulank,
+      currentDate: new Date(),
+      dateOfBirth,
+      timeOfBirth,
+      placeOfBirth
+    });
+  }, [name, zodiacSign, lagnaSign, lagnaSystem, dateOfBirth, timeOfBirth, placeOfBirth]);
+
+  const toneStyle = {
+    Positive: 'border-emerald-300/40 text-emerald-200',
+    Neutral: 'border-cyan-300/40 text-cyan-200',
+    Challenging: 'border-amber-300/40 text-amber-200'
+  };
 
   return (
     <div
@@ -191,9 +123,15 @@ export function HoroscopePanel({ zodiacSign, dateOfBirth, timeOfBirth, placeOfBi
             <h3 className="text-lg md:text-xl text-purple-300">{zodiacSign}</h3>
             <span className="text-xs md:text-sm text-white/50">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
           </div>
-          {detail ? (
+          {prediction ? (
             <>
-              <p className="text-white/75 leading-relaxed">{detail.overview}</p>
+              <div className="rounded-lg border border-white/15 bg-white/[0.02] px-3 py-2">
+                <span className={`inline-flex rounded-full border px-2 py-1 text-xs ${toneStyle[prediction.tone as keyof typeof toneStyle]}`}>
+                  Day Tone: {prediction.tone}
+                </span>
+              </div>
+
+              <p className="text-white/75 leading-relaxed whitespace-pre-line">{prediction.overall}</p>
               <button
                 type="button"
                 onClick={() => setShowDetails((prev) => !prev)}
@@ -206,20 +144,25 @@ export function HoroscopePanel({ zodiacSign, dateOfBirth, timeOfBirth, placeOfBi
                 <>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="rounded-xl border border-emerald-300/30 bg-white/0 p-4">
-                      <h4 className="text-emerald-200 text-sm mb-2">Pros</h4>
-                      <p className="text-white/70 text-sm">{detail.strengths}</p>
+                      <h4 className="text-emerald-200 text-sm mb-2">Love</h4>
+                      <p className="text-white/70 text-sm whitespace-pre-line">{prediction.love}</p>
                     </div>
                     <div className="rounded-xl border border-amber-300/30 bg-white/0 p-4">
-                      <h4 className="text-amber-200 text-sm mb-2">Cons</h4>
-                      <p className="text-white/70 text-sm">{detail.cautions}</p>
+                      <h4 className="text-amber-200 text-sm mb-2">Career</h4>
+                      <p className="text-white/70 text-sm whitespace-pre-line">{prediction.career}</p>
                     </div>
+                  </div>
+
+                  <div className="rounded-xl border border-indigo-300/30 bg-white/0 p-4">
+                    <h4 className="text-indigo-200 text-sm mb-2">Health</h4>
+                    <p className="text-white/70 text-sm whitespace-pre-line">{prediction.health}</p>
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="rounded-xl border border-cyan-300/30 bg-white/0 p-4">
                       <h4 className="text-cyan-200 text-sm mb-2">What To Do</h4>
                       <ul className="list-disc pl-5 space-y-1 text-white/70 text-sm">
-                        {detail.doList.map((item) => (
+                        {prediction.do.map((item) => (
                           <li key={item}>{item}</li>
                         ))}
                       </ul>
@@ -227,7 +170,7 @@ export function HoroscopePanel({ zodiacSign, dateOfBirth, timeOfBirth, placeOfBi
                     <div className="rounded-xl border border-rose-300/30 bg-white/0 p-4">
                       <h4 className="text-rose-200 text-sm mb-2">What Not To Do</h4>
                       <ul className="list-disc pl-5 space-y-1 text-white/70 text-sm">
-                        {detail.avoidList.map((item) => (
+                        {prediction.dont.map((item) => (
                           <li key={item}>{item}</li>
                         ))}
                       </ul>
@@ -237,10 +180,10 @@ export function HoroscopePanel({ zodiacSign, dateOfBirth, timeOfBirth, placeOfBi
                   <div className="rounded-xl border border-white/15 bg-white/0 p-4">
                     <h4 className="text-white/90 text-sm mb-2">How This Reading Uses Your Data</h4>
                     <p className="text-white/70 text-sm leading-relaxed">
-                      Zodiac sign is calculated from your date of birth only. Time and place of birth are currently collected for profile context and future advanced features, but they do not change this horoscope yet.
+                      This prediction engine combines your zodiac sign, Lagna (ascendant), Life Path Number, Mulank, and current date tone. Auto Lagna now uses Vedic sidereal mode with Lahiri ayanamsha. The date creates deterministic daily variation, so predictions update each day without random noise.
                     </p>
                     <p className="text-white/50 text-xs mt-2">
-                      Input received: DOB {dateOfBirth || 'not set'}, Time {timeOfBirth || 'not set'}, Place {placeOfBirth || 'not set'}.
+                      Input received: Name {name || 'not set'}, DOB {dateOfBirth || 'not set'}, Time {timeOfBirth || 'not set'}, Place {placeOfBirth || 'not set'}, Zodiac {zodiacSign}, Lagna {prediction.meta.lagnaSign} ({prediction.meta.lagnaSource}, {prediction.meta.lagnaSystem}), Life Path {prediction.meta.lifePathNumber}, Mulank {prediction.meta.mulank}.
                     </p>
                   </div>
                 </>

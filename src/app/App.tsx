@@ -3,7 +3,8 @@ import { ZodiacWheel } from './components/ZodiacWheel';
 import { UserForm } from './components/UserForm';
 import { HoroscopePanel } from './components/HoroscopePanel';
 import { NumerologyCard } from './components/NumerologyCard';
-import { getZodiacSign, getZodiacSymbol } from './utils/astrology';
+import { getVedicSunSign, getZodiacSign, getZodiacSymbol } from './utils/astrology';
+import { estimateLagna, normalizeLagna } from './utils/lagna';
 import { gsap } from 'gsap';
 import { Sparkles } from 'lucide-react';
 
@@ -12,6 +13,8 @@ interface UserData {
   dateOfBirth: string;
   timeOfBirth: string;
   placeOfBirth: string;
+  lagnaSign: string;
+  lagnaSystem: string;
 }
 
 export default function App() {
@@ -19,7 +22,9 @@ export default function App() {
     name: '',
     dateOfBirth: '',
     timeOfBirth: '',
-    placeOfBirth: ''
+    placeOfBirth: '',
+    lagnaSign: 'AUTO',
+    lagnaSystem: 'vedic-lahiri'
   });
 
   const [zodiacSign, setZodiacSign] = useState('Aries');
@@ -42,6 +47,16 @@ export default function App() {
     () => ['♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓'],
     []
   );
+  const resolvedLagna = useMemo(() => {
+    const selected = normalizeLagna(userData.lagnaSign);
+    if (selected) return selected;
+    return estimateLagna({
+      dateOfBirth: userData.dateOfBirth,
+      timeOfBirth: userData.timeOfBirth,
+      placeOfBirth: userData.placeOfBirth,
+      system: userData.lagnaSystem
+    });
+  }, [userData.lagnaSign, userData.dateOfBirth, userData.timeOfBirth, userData.placeOfBirth, userData.lagnaSystem]);
 
   useEffect(() => {
     if (titleRef.current) {
@@ -63,7 +78,9 @@ export default function App() {
   const handleDataChange = useCallback((data: UserData) => {
     setUserData(data);
     if (data.dateOfBirth) {
-      const sign = getZodiacSign(data.dateOfBirth);
+      const sign = data.lagnaSystem === 'vedic-lahiri'
+        ? getVedicSunSign(data.dateOfBirth)
+        : getZodiacSign(data.dateOfBirth);
       setZodiacSign(sign);
     }
   }, []);
@@ -146,7 +163,10 @@ export default function App() {
 
           <div className="space-y-6 md:space-y-8 min-w-0">
             <HoroscopePanel
+              name={userData.name}
               zodiacSign={zodiacSign}
+              lagnaSign={userData.lagnaSign}
+              lagnaSystem={userData.lagnaSystem}
               dateOfBirth={userData.dateOfBirth}
               timeOfBirth={userData.timeOfBirth}
               placeOfBirth={userData.placeOfBirth}
@@ -161,7 +181,13 @@ export default function App() {
                     <span className="text-purple-300">Name:</span> {userData.name}
                   </p>
                   <p>
-                    <span className="text-purple-300">Zodiac Sign:</span> {zodiacSign} {getZodiacSymbol(zodiacSign)}
+                    <span className="text-purple-300">Sun Sign:</span> {zodiacSign} {getZodiacSymbol(zodiacSign)} {userData.lagnaSystem === 'vedic-lahiri' ? '(Vedic sidereal)' : '(Tropical)'}
+                  </p>
+                  <p>
+                    <span className="text-purple-300">Lagna:</span> {resolvedLagna} {userData.lagnaSign === 'AUTO' ? '(auto estimated)' : '(manual)'}
+                  </p>
+                  <p>
+                    <span className="text-purple-300">Lagna System:</span> {userData.lagnaSign === 'AUTO' ? userData.lagnaSystem : 'manual selection'}
                   </p>
                   {userData.placeOfBirth && (
                     <p>
