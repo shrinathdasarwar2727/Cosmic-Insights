@@ -1,19 +1,16 @@
 import { useRef, useEffect } from 'react';
 
-const zodiacSigns = [
-  { name: 'Aries', symbol: '♈', angle: 0, color: '#ff4444' },
-  { name: 'Taurus', symbol: '♉', angle: 30, color: '#ff8844' },
-  { name: 'Gemini', symbol: '♊', angle: 60, color: '#ffcc44' },
-  { name: 'Cancer', symbol: '♋', angle: 90, color: '#44ff44' },
-  { name: 'Leo', symbol: '♌', angle: 120, color: '#44ffcc' },
-  { name: 'Virgo', symbol: '♍', angle: 150, color: '#44ccff' },
-  { name: 'Libra', symbol: '♎', angle: 180, color: '#4488ff' },
-  { name: 'Scorpio', symbol: '♏', angle: 210, color: '#8844ff' },
-  { name: 'Sagittarius', symbol: '♐', angle: 240, color: '#cc44ff' },
-  { name: 'Capricorn', symbol: '♑', angle: 270, color: '#ff44cc' },
-  { name: 'Aquarius', symbol: '♒', angle: 300, color: '#ff4488' },
-  { name: 'Pisces', symbol: '♓', angle: 330, color: '#ff44ff' }
-];
+const numerologyValues = [
+    { name: 'One', symbol: '1', angle: 0, color: '#ff5f7a' },
+    { name: 'Two', symbol: '2', angle: 40, color: '#ff9a5b' },
+    { name: 'Three', symbol: '3', angle: 80, color: '#ffd15c' },
+    { name: 'Four', symbol: '4', angle: 120, color: '#7bd389' },
+    { name: 'Five', symbol: '5', angle: 160, color: '#4fd1c5' },
+    { name: 'Six', symbol: '6', angle: 200, color: '#60a5fa' },
+    { name: 'Seven', symbol: '7', angle: 240, color: '#8b5cf6' },
+    { name: 'Eight', symbol: '8', angle: 280, color: '#c084fc' },
+    { name: 'Nine', symbol: '9', angle: 320, color: '#fb7185' },
+  ];
 
 export function ZodiacWheel({ activeSign }: { activeSign: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -82,16 +79,16 @@ export function ZodiacWheel({ activeSign }: { activeSign: string }) {
       ctx.arc(centerX, centerY, radius + 20, 0, Math.PI * 2);
       ctx.stroke();
 
-      zodiacSigns.forEach((sign) => {
-        const angle = sign.angle + rotationRef.current;
+      numerologyValues.forEach((number) => {
+        const angle = number.angle + rotationRef.current;
         const rad = (angle * Math.PI) / 180;
         const x = centerX + Math.cos(rad) * radius;
         const y = centerY + Math.sin(rad) * radius;
-        const isActive = sign.name === activeSign;
+        const isActive = number.name === activeSign;
 
         if (isActive) {
           const glowGradient = ctx.createRadialGradient(x, y, 0, x, y, 30);
-          glowGradient.addColorStop(0, `${sign.color}88`);
+          glowGradient.addColorStop(0, `${number.color}88`);
           glowGradient.addColorStop(1, 'transparent');
           ctx.fillStyle = glowGradient;
           ctx.beginPath();
@@ -99,8 +96,8 @@ export function ZodiacWheel({ activeSign }: { activeSign: string }) {
           ctx.fill();
         }
 
-        ctx.fillStyle = sign.color;
-        ctx.shadowColor = sign.color;
+        ctx.fillStyle = number.color;
+        ctx.shadowColor = number.color;
         ctx.shadowBlur = isActive ? 20 : 10;
         ctx.beginPath();
         ctx.arc(x, y, isActive ? 12 : 8, 0, Math.PI * 2);
@@ -111,7 +108,7 @@ export function ZodiacWheel({ activeSign }: { activeSign: string }) {
         ctx.font = isActive ? 'bold 24px serif' : '20px serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(sign.symbol, x, y);
+        ctx.fillText(number.symbol, x, y);
       });
 
       rotationRef.current += 0.2;

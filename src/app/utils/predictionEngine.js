@@ -4,7 +4,6 @@ import {
   getLifePathRule,
   getMulankRule
 } from './numerologyRules';
-import { getZodiacRule } from './zodiacRules';
 import { estimateLagna, getDefaultLagnaSystem, normalizeLagna } from './lagna';
 
 const toneLabels = {
@@ -93,9 +92,8 @@ function getDateParts(currentDate) {
   };
 }
 
-function buildSeed(parts, zodiacSign, lifePathNumber, mulank) {
-  const signSeed = zodiacSign.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return parts.year * 10000 + parts.month * 100 + parts.day + signSeed + lifePathNumber * 13 + mulank * 17;
+function buildSeed(parts, lifePathNumber, mulank) {
+  return parts.year * 10000 + parts.month * 100 + parts.day + (lifePathNumber || 0) * 13 + (mulank || 0) * 17;
 }
 
 function pickBySeed(collection, seed, salt) {
@@ -115,7 +113,6 @@ function buildMultiLineMessage(lines) {
 
 export function generatePrediction(userData) {
   const name = (userData?.name || 'Seeker').trim();
-  const zodiacSign = userData?.zodiacSign || 'Aries';
   const manualLagna = normalizeLagna(userData?.lagnaSign);
   const selectedSystem = userData?.lagnaSystem || getDefaultLagnaSystem();
   const lagnaSystem = manualLagna ? 'manual-selection' : selectedSystem;
@@ -130,50 +127,47 @@ export function generatePrediction(userData) {
   const mulank = userData?.mulank || calculateMulank(userData?.dateOfBirth || '');
   const dateParts = getDateParts(userData?.currentDate);
 
-  const zodiacRule = getZodiacRule(zodiacSign);
-  const lagnaRule = getZodiacRule(lagnaSign);
   const lifePathRule = getLifePathRule(lifePathNumber || 1);
   const mulankRule = getMulankRule(mulank || 1);
 
   const dateScore = (dateParts.day % 5) - 1;
-  const lagnaHarmonyScore = lagnaSign === zodiacSign ? 1 : 0;
-  const score = zodiacRule.baseScore + lagnaRule.baseScore + lifePathRule.score + mulankRule.score + dateScore + lagnaHarmonyScore;
+  const score = (lifePathRule.score || 0) + (mulankRule.score || 0) + dateScore;
   const tone = resolveTone(score);
-  const seed = buildSeed(dateParts, zodiacSign, lifePathNumber || 1, mulank || 1);
+  const seed = buildSeed(dateParts, lifePathNumber || 1, mulank || 1);
   const dayTheme = pickBySeed(dayThemes, seed, 7);
 
   const overall = buildMultiLineMessage([
-    `${name}, your ${zodiacSign} nature (${zodiacRule.style}) combines with Lagna ${lagnaSign} (${lagnaRule.style}), Life Path ${lifePathNumber || 1} (${lifePathRule.direction}), and Mulank ${mulank || 1} (${mulankRule.influence}) to shape today.` ,
+    `${name}, Life Path ${lifePathNumber || 1} (${lifePathRule.direction}) combines with Mulank ${mulank || 1} (${mulankRule.influence}) to shape today.`,
     pickBySeed(overallFrames[tone], seed, 11),
-    `Theme of the day: ${dayTheme}. Lead with ${zodiacRule.strengths[0]} while consciously managing ${lagnaRule.caution}.`
+    `Theme of the day: ${dayTheme}. Focus on ${lifePathRule.trait || 'your core strengths'} while balancing ${mulankRule.trait || 'your inner rhythm'}.`
   ]);
 
   const love = buildMultiLineMessage([
-    `${name}, emotional patterns are influenced by your ${zodiacSign} emotional field, Lagna ${lagnaSign} behavior style, and ${mulankRule.trait} response tendency.`,
+    `${name}, emotional patterns today reflect Life Path ${lifePathNumber || 1} and Mulank ${mulank || 1}.`,
     pickBySeed(loveFrames[tone], seed, 19),
-    `Relationship key: use ${lagnaRule.strengths[1]} to create safety before discussing sensitive topics.`
+    `Relationship key: cultivate ${mulankRule.trait || 'emotional awareness'} and steady communication.`
   ]);
 
   const career = buildMultiLineMessage([
     `Your professional direction reflects Life Path ${lifePathNumber || 1}: ${lifePathRule.direction}.`,
     pickBySeed(careerFrames[tone], seed, 29),
-    `Career key: apply ${zodiacRule.strengths[2]} in one high-impact task and avoid scattered commitments.`
+    `Career key: apply ${lifePathRule.trait || 'your core strengths'} in focused, high-impact tasks.`
   ]);
 
   const health = buildMultiLineMessage([
-    `Your vitality today is linked to emotional regulation and routine quality more than intensity.`,
+    `Your vitality today links to routine and emotional balance more than intensity.`,
     pickBySeed(healthFrames[tone], seed, 37),
-    `Health key: keep rhythm in meals, hydration, and sleep to stabilize both mood and focus.`
+    `Health key: prioritize rhythm in sleep, hydration, and movement to support stamina.`
   ]);
 
   const doList = [
     `Prioritize 1 core goal aligned with ${dayTheme}.`,
-    `Use ${lifePathRule.trait} thinking and ${lagnaRule.strengths[0]} execution in decisions, then communicate clearly.`,
+    `Use ${lifePathRule.trait || 'your core strengths'} thinking and consistent execution in decisions, then communicate clearly.`,
     `Take one conscious pause before major reaction.`
   ];
 
   const dontList = [
-    `Do not let ${zodiacRule.caution} decide your tone in important conversations.`,
+    `Do not let reactivity decide your tone in important conversations.`,
     'Do not overfill your schedule to prove productivity.',
     'Do not ignore early stress signals from your body.'
   ];
@@ -187,7 +181,6 @@ export function generatePrediction(userData) {
     do: doList,
     dont: dontList,
     meta: {
-      zodiacSign,
       lagnaSign,
       lagnaSource,
       lagnaSystem,

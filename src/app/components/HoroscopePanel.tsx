@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { Sparkles } from 'lucide-react';
-import { ZodiacConstellation } from './ZodiacConstellation';
-import { ZodiacAnimalBackground } from './ZodiacAnimalBackground';
 import { generatePrediction } from '../utils/predictionEngine';
 import { calculateLifePathNumber, calculateMulank } from '../utils/numerologyRules';
 
@@ -83,8 +81,6 @@ export function HoroscopePanel({ name, zodiacSign, lagnaSign, lagnaSystem, dateO
       ref={containerRef}
       className="bg-white/[0.008] backdrop-blur-2xl rounded-2xl p-5 md:p-8 border border-white/35 shadow-[0_0_0_1px_rgba(255,255,255,0.045)] relative overflow-hidden min-h-[320px] md:min-h-[400px] flex items-center justify-center"
     >
-      <ZodiacAnimalBackground sign={zodiacSign} />
-
       <div className="absolute inset-0 pointer-events-none">
         {Array.from({ length: 80 }).map((_, i) => (
           <div
@@ -101,8 +97,6 @@ export function HoroscopePanel({ name, zodiacSign, lagnaSign, lagnaSystem, dateO
         ))}
       </div>
 
-      <ZodiacConstellation sign={zodiacSign} />
-
       <div
         ref={circleRef}
         className="absolute inset-0 flex items-center justify-center pointer-events-none"
@@ -116,11 +110,11 @@ export function HoroscopePanel({ name, zodiacSign, lagnaSign, lagnaSystem, dateO
       <div ref={textRef} className="relative z-10 w-full">
         <div className="flex items-center gap-3 mb-6">
           <Sparkles className="text-yellow-400 w-6 h-6" />
-          <h2 className="text-xl md:text-2xl text-white/90">Daily Horoscope</h2>
+          <h2 className="text-xl md:text-2xl text-white/90">Your Numerology Reading</h2>
         </div>
         <div className="space-y-4">
           <div className="flex items-center justify-between gap-3 flex-wrap">
-            <h3 className="text-lg md:text-xl text-purple-300">{zodiacSign}</h3>
+            <h3 className="text-lg md:text-xl text-purple-300">Numerology Analysis</h3>
             <span className="text-xs md:text-sm text-white/50">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
           </div>
           {prediction ? (
@@ -137,7 +131,7 @@ export function HoroscopePanel({ name, zodiacSign, lagnaSign, lagnaSystem, dateO
                 onClick={() => setShowDetails((prev) => !prev)}
                 className="w-full rounded-lg border border-white/40 bg-white/[0.01] px-4 py-2 text-sm text-white/90 hover:bg-white/[0.04] transition-colors"
               >
-                {showDetails ? 'Hide Detailed Horoscope' : 'Show Detailed Horoscope'}
+                {showDetails ? 'Hide Detailed Analysis' : 'Show Detailed Analysis'}
               </button>
 
               {showDetails && (
@@ -190,7 +184,7 @@ export function HoroscopePanel({ name, zodiacSign, lagnaSign, lagnaSystem, dateO
               )}
             </>
           ) : (
-            <p className="text-white/70 leading-relaxed">Enter your birth details to reveal your cosmic guidance.</p>
+            <p className="text-white/70 leading-relaxed">Enter your birth details to reveal your numerology insights.</p>
           )}
         </div>
       </div>

@@ -1,9 +1,7 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { ZodiacWheel } from './components/ZodiacWheel';
 import { UserForm } from './components/UserForm';
-import { HoroscopePanel } from './components/HoroscopePanel';
 import { NumerologyCard } from './components/NumerologyCard';
-import { getVedicSunSign, getZodiacSign, getZodiacSymbol } from './utils/astrology';
+import { calculateLifePathNumber, calculateMulank } from './utils/numerologyRules';
 import { estimateLagna, normalizeLagna } from './utils/lagna';
 import { gsap } from 'gsap';
 import { Sparkles } from 'lucide-react';
@@ -43,10 +41,16 @@ export default function App() {
       })),
     []
   );
-  const zodiacBackgroundSymbols = useMemo(
-    () => ['♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓'],
+  const numerologyNumbers = useMemo(
+    () => [1, 2, 3, 4, 5, 6, 7, 8, 9],
     []
   );
+  const lifePathNumber = useMemo(() => {
+    return userData.dateOfBirth ? calculateLifePathNumber(userData.dateOfBirth) : null;
+  }, [userData.dateOfBirth]);
+  const mulankNumber = useMemo(() => {
+    return userData.dateOfBirth ? calculateMulank(userData.dateOfBirth) : null;
+  }, [userData.dateOfBirth]);
   const resolvedLagna = useMemo(() => {
     const selected = normalizeLagna(userData.lagnaSign);
     if (selected) return selected;
@@ -77,12 +81,6 @@ export default function App() {
 
   const handleDataChange = useCallback((data: UserData) => {
     setUserData(data);
-    if (data.dateOfBirth) {
-      const sign = data.lagnaSystem === 'vedic-lahiri'
-        ? getVedicSunSign(data.dateOfBirth)
-        : getZodiacSign(data.dateOfBirth);
-      setZodiacSign(sign);
-    }
   }, []);
 
   return (
@@ -98,19 +96,36 @@ export default function App() {
             <div className="absolute inset-[16%] rounded-full border border-purple-100/30 animate-spin" style={{ animationDuration: '55s' }}></div>
 
             <div className="absolute inset-0 animate-spin" style={{ animationDuration: '95s' }}>
-              {zodiacBackgroundSymbols.map((symbol, index) => {
-                const angle = (index / zodiacBackgroundSymbols.length) * Math.PI * 2 - Math.PI / 2;
+              {numerologyNumbers.map((number, index) => {
+                const angle = (index / numerologyNumbers.length) * Math.PI * 2 - Math.PI / 2;
                 const radius = 46;
                 const x = 50 + radius * Math.cos(angle);
                 const y = 50 + radius * Math.sin(angle);
 
+                const isLifePathActive = lifePathNumber === number;
+                const isMulankActive = mulankNumber === number;
+                const isActive = isLifePathActive || isMulankActive;
                 return (
                   <span
-                    key={`${symbol}-${index}`}
-                    className="absolute -translate-x-1/2 -translate-y-1/2 text-sm sm:text-base lg:text-xl text-indigo-100/85"
-                    style={{ left: `${x}%`, top: `${y}%` }}
+                    key={`${number}-${index}`}
+                    className={`absolute -translate-x-1/2 -translate-y-1/2 font-bold ${isActive ? 'text-2xl sm:text-3xl lg:text-4xl' : 'text-sm sm:text-base lg:text-xl'}`}
+                    style={{
+                      left: `${x}%`,
+                      top: `${y}%`,
+                      color: isActive ? '#fff' : 'rgba(148,163,184,0.85)',
+                      textShadow: isLifePathActive && isMulankActive
+                        ? '0 0 20px rgba(99,102,241,0.95), 0 0 28px rgba(236,72,153,0.85)'
+                        : isLifePathActive
+                        ? '0 0 18px rgba(99,102,241,0.9), 0 0 32px rgba(99,102,241,0.6)'
+                        : isMulankActive
+                        ? '0 0 18px rgba(236,72,153,0.9), 0 0 32px rgba(236,72,153,0.6)'
+                        : undefined,
+                      transition: 'transform 300ms ease, text-shadow 300ms ease',
+                      transform: isLifePathActive && isMulankActive ? 'scale(1.35)' : isActive ? 'scale(1.25)' : undefined,
+                      animation: isActive ? 'glowPulse 1.8s infinite ease-in-out' : undefined
+                    }}
                   >
-                    {symbol}
+                    {number}
                   </span>
                 );
               })}
@@ -144,7 +159,7 @@ export default function App() {
           <div className="flex items-center justify-center gap-2 md:gap-3 mb-4 px-2">
             <Sparkles className="text-yellow-400 w-6 h-6 md:w-8 md:h-8 animate-pulse shrink-0" />
             <h1 className="text-4xl sm:text-5xl md:text-6xl leading-tight bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent break-words">
-              Cosmic Insights
+              Numerology Insights
             </h1>
             <Sparkles className="text-yellow-400 w-6 h-6 md:w-8 md:h-8 animate-pulse shrink-0" />
           </div>
@@ -153,53 +168,13 @@ export default function App() {
           </p>
         </div>
 
-        <div ref={contentRef} className="grid lg:grid-cols-2 gap-6 md:gap-8 max-w-7xl mx-auto">
+        <div ref={contentRef} className="grid gap-6 md:gap-8 max-w-7xl mx-auto">
           <div className="space-y-6 md:space-y-8 min-w-0">
             <UserForm onDataChange={handleDataChange} />
-            <div className="bg-white/[0.008] backdrop-blur-2xl rounded-2xl p-6 border border-white/35 shadow-[0_0_0_1px_rgba(255,255,255,0.045)]">
-              <ZodiacWheel activeSign={zodiacSign} />
-            </div>
           </div>
 
           <div className="space-y-6 md:space-y-8 min-w-0">
-            <HoroscopePanel
-              name={userData.name}
-              zodiacSign={zodiacSign}
-              lagnaSign={userData.lagnaSign}
-              lagnaSystem={userData.lagnaSystem}
-              dateOfBirth={userData.dateOfBirth}
-              timeOfBirth={userData.timeOfBirth}
-              placeOfBirth={userData.placeOfBirth}
-            />
             <NumerologyCard dateOfBirth={userData.dateOfBirth} />
-
-            {userData.name && (
-              <div className="bg-white/[0.008] backdrop-blur-2xl rounded-2xl p-5 md:p-8 border border-white/35 shadow-[0_0_0_1px_rgba(255,255,255,0.045)]">
-                <h2 className="text-xl md:text-2xl mb-4 text-white/90">Your Cosmic Summary</h2>
-                <div className="space-y-3 text-white/70">
-                  <p>
-                    <span className="text-purple-300">Name:</span> {userData.name}
-                  </p>
-                  <p>
-                    <span className="text-purple-300">Sun Sign:</span> {zodiacSign} {getZodiacSymbol(zodiacSign)} {userData.lagnaSystem === 'vedic-lahiri' ? '(Vedic sidereal)' : '(Tropical)'}
-                  </p>
-                  <p>
-                    <span className="text-purple-300">Lagna:</span> {resolvedLagna} {userData.lagnaSign === 'AUTO' ? '(auto estimated)' : '(manual)'}
-                  </p>
-                  <p>
-                    <span className="text-purple-300">Lagna System:</span> {userData.lagnaSign === 'AUTO' ? userData.lagnaSystem : 'manual selection'}
-                  </p>
-                  {userData.placeOfBirth && (
-                    <p>
-                      <span className="text-purple-300">Birth Place:</span> {userData.placeOfBirth}
-                    </p>
-                  )}
-                  <p className="text-sm text-white/50 pt-4 border-t border-white/10">
-                    Your cosmic journey is unique. The stars and numbers reveal pathways to understanding your true potential.
-                  </p>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
@@ -209,6 +184,7 @@ export default function App() {
           </p>
         </div>
       </div>
+      <style>{`@keyframes glowPulse { 0% { filter: drop-shadow(0 0 6px rgba(99,102,241,0.6)); } 50% { filter: drop-shadow(0 0 18px rgba(99,102,241,0.95)); } 100% { filter: drop-shadow(0 0 6px rgba(99,102,241,0.6)); } }`}</style>
     </div>
   );
 }
