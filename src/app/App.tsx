@@ -45,6 +45,19 @@ export default function App() {
     () => [1, 2, 3, 4, 5, 6, 7, 8, 9],
     []
   );
+  const planets = useMemo(
+    () => [
+      { name: 'Sun', symbol: '☉', color: '#FFD166', radius: 28, size: 18 },
+      { name: 'Mercury', symbol: '☿', color: '#A3E635', radius: 36, size: 12 },
+      { name: 'Venus', symbol: '♀', color: '#F472B6', radius: 46, size: 14 },
+      { name: 'Mars', symbol: '♂', color: '#FB7185', radius: 56, size: 12 },
+      { name: 'Jupiter', symbol: '♃', color: '#FBBF24', radius: 68, size: 16 },
+      { name: 'Saturn', symbol: '♄', color: '#93C5FD', radius: 78, size: 14 },
+      { name: 'Uranus', symbol: '♅', color: '#C084FC', radius: 92, size: 12 },
+      { name: 'Neptune', symbol: '♆', color: '#60A5FA', radius: 104, size: 12 },
+    ],
+    []
+  );
   const lifePathNumber = useMemo(() => {
     return userData.dateOfBirth ? calculateLifePathNumber(userData.dateOfBirth) : null;
   }, [userData.dateOfBirth]);
@@ -129,6 +142,34 @@ export default function App() {
                   </span>
                 );
               })}
+              {planets.map((p, i) => {
+                const angle = (i / planets.length) * Math.PI * 2 - Math.PI / 2;
+                const radiusP = p.radius;
+                const xP = 50 + radiusP * Math.cos(angle);
+                const yP = 50 + radiusP * Math.sin(angle);
+                return (
+                  <div
+                    key={p.name}
+                    title={p.name}
+                    aria-label={p.name}
+                    className="absolute -translate-x-1/2 -translate-y-1/2 flex items-center justify-center rounded-full"
+                    style={{
+                      left: `${xP}%`,
+                      top: `${yP}%`,
+                      width: `${p.size}px`,
+                      height: `${p.size}px`,
+                      background: p.color,
+                      boxShadow: `0 0 10px ${p.color}66, 0 0 22px ${p.color}44`,
+                      color: '#081026',
+                      fontSize: Math.max(10, p.size - 4),
+                      transition: 'transform 400ms ease',
+                      animation: 'planetFloat 6s ease-in-out infinite'
+                    }}
+                  >
+                    <span style={{ lineHeight: 1 }}>{p.symbol}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -184,7 +225,10 @@ export default function App() {
           </p>
         </div>
       </div>
-      <style>{`@keyframes glowPulse { 0% { filter: drop-shadow(0 0 6px rgba(99,102,241,0.6)); } 50% { filter: drop-shadow(0 0 18px rgba(99,102,241,0.95)); } 100% { filter: drop-shadow(0 0 6px rgba(99,102,241,0.6)); } }`}</style>
+      <style>{`
+        @keyframes glowPulse { 0% { filter: drop-shadow(0 0 6px rgba(99,102,241,0.6)); } 50% { filter: drop-shadow(0 0 18px rgba(99,102,241,0.95)); } 100% { filter: drop-shadow(0 0 6px rgba(99,102,241,0.6)); } }
+        @keyframes planetFloat { 0% { transform: translateY(-2px); } 50% { transform: translateY(2px); } 100% { transform: translateY(-2px); } }
+      `}</style>
     </div>
   );
 }
