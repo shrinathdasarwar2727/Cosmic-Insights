@@ -1,0 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Manrope:wght@400;500;600;700&display=swap');
+
+body {
+	font-family: 'Manrope', 'Segoe UI', Tahoma, sans-serif;
+}
+
+.font-cinzel {
+	font-family: 'Cinzel', Georgia, serif;
+	letter-spacing: 0.02em;
+}

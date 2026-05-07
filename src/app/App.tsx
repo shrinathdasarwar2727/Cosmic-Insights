@@ -1,8 +1,8 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { UserForm } from './components/UserForm';
 import { NumerologyCard } from './components/NumerologyCard';
+import { AdvancedNumerologyDashboard } from './components/AdvancedNumerologyDashboard';
 import { calculateLifePathNumber, calculateMulank } from './utils/numerologyRules';
-import { estimateLagna, normalizeLagna } from './utils/lagna';
 import { gsap } from 'gsap';
 import { Sparkles } from 'lucide-react';
 
@@ -25,7 +25,6 @@ export default function App() {
     lagnaSystem: 'vedic-lahiri'
   });
 
-  const [zodiacSign, setZodiacSign] = useState('Aries');
   const titleRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const starField = useMemo(
@@ -64,17 +63,6 @@ export default function App() {
   const mulankNumber = useMemo(() => {
     return userData.dateOfBirth ? calculateMulank(userData.dateOfBirth) : null;
   }, [userData.dateOfBirth]);
-  const resolvedLagna = useMemo(() => {
-    const selected = normalizeLagna(userData.lagnaSign);
-    if (selected) return selected;
-    return estimateLagna({
-      dateOfBirth: userData.dateOfBirth,
-      timeOfBirth: userData.timeOfBirth,
-      placeOfBirth: userData.placeOfBirth,
-      system: userData.lagnaSystem
-    });
-  }, [userData.lagnaSign, userData.dateOfBirth, userData.timeOfBirth, userData.placeOfBirth, userData.lagnaSystem]);
-
   useEffect(() => {
     if (titleRef.current) {
       gsap.fromTo(
@@ -195,11 +183,11 @@ export default function App() {
         <div className="absolute bottom-[-18%] left-1/4 w-[30rem] h-[30rem] rounded-full bg-blue-500/10 blur-3xl"></div>
       </div>
 
-      <div className="relative z-10 container mx-auto px-3 sm:px-4 py-6 md:py-12">
+      <div className="relative z-10 container mx-auto px-3 sm:px-4 py-6 md:py-12 pb-24 md:pb-12">
         <div ref={titleRef} className="text-center mb-8 md:mb-12">
           <div className="flex items-center justify-center gap-2 md:gap-3 mb-4 px-2">
             <Sparkles className="text-yellow-400 w-6 h-6 md:w-8 md:h-8 animate-pulse shrink-0" />
-            <h1 className="text-4xl sm:text-5xl md:text-6xl leading-tight bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent break-words">
+            <h1 className="font-cinzel text-4xl sm:text-5xl md:text-6xl leading-tight bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent break-words">
               Numerology Insights
             </h1>
             <Sparkles className="text-yellow-400 w-6 h-6 md:w-8 md:h-8 animate-pulse shrink-0" />
@@ -216,6 +204,13 @@ export default function App() {
 
           <div className="space-y-6 md:space-y-8 min-w-0">
             <NumerologyCard dateOfBirth={userData.dateOfBirth} />
+          </div>
+
+          <div className="space-y-6 md:space-y-8 min-w-0">
+            <AdvancedNumerologyDashboard
+              name={userData.name}
+              dateOfBirth={userData.dateOfBirth}
+            />
           </div>
         </div>
 
